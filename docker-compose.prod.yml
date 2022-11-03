@@ -3,25 +3,30 @@ version: "3.9"
 # db(MySQL),app(Django),web(Nginx)のコンテナを作成
 services:
   db:
-    container_name: mysql
+    container_name: MySQL
     build:
       context: .
       dockerfile: Docker/MySQL/Dockerfile
     platform: linux/x86_64
     volumes:
-      - db_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+    # コンテナ内の環境変数を.env.prodを使って設定
     env_file:
-      - .env
+      - .env.prod
     healthcheck:
       test: mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   app:
-    container_name: app
+    container_name: Django
     build:
       context: .
       dockerfile: Docker/Django/Dockerfile
     volumes:
-      - ./Django_App:/code
+      - ./app_dir:/code
       - ./static:/static
     # 8000番ポートをNginx側が接続できるよう開く
     expose:
@@ -29,8 +34,9 @@ services:
     # gunicornを起動させる
     command:  bash -c "python manage.py collectstatic --noinput && \
               gunicorn djangopj.wsgi:application --bind 0.0.0.0:8000"
+    # コンテナ内の環境変数を.env.prodを使って設定
     env_file:
-      - ./.env
+      - .env.prod
     depends_on:
       db:
         # dbのヘルスチェックが終わってからappを起動させる
@@ -38,7 +44,7 @@ services:
 
   web:
     # コンテナ名をwebに指定
-    container_name: web
+    container_name: Nginx
     # NginxのDockerfileをビルドする
     build:
       # ビルドコンテキストはカレントディレクトリ
@@ -54,7 +60,7 @@ services:
     # 先にappを起動してからwebを起動する
     depends_on:
       - app
-      
+
 volumes:
-  db_data:
+  mysql_data:
   static:

@@ -5,7 +5,7 @@ version: "3.9"
 services:
   db:
     # コンテナ名をmysqlに設定
-    container_name: mysql
+    container_name: MySQL
     # MySQLのDockerfileをビルドする
     build:
       # ビルドコンテキストはカレントディレクトリ
@@ -17,7 +17,7 @@ services:
     # DBのボリュームを指定
     # ローカルの/data/dbをコンテナの/var/lib/mysqlにマウントする
     volumes:
-      - db_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     # コンテナ内の環境変数を.envを使って設定
     env_file:
       - .env
@@ -25,10 +25,18 @@ services:
     # mysqladmin(MySQLサーバーの管理を行うクライアントを使ってDBコンテナ自身(127.0.0.1)にpingを送ってヘルスチェックを行う
     healthcheck:
       test: mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD
+      # ヘルスチェックのインターバルは10秒
+      interval: 10s
+      # タイムアウト時間は10秒
+      timeout: 10s
+      # リトライ回数は3回
+      retries: 3
+      # ヘルスチェックが失敗しても無視する時間は30秒
+      start_period: 30s
 
   app:
     # コンテナ名をappに設定
-    container_name: app
+    container_name: Django
     # DjangoのDockerfileをビルドする
     build:
       # ビルドコンテキストはカレントディレクトリ
@@ -38,7 +46,7 @@ services:
     # ローカルのカレントディレクトリをコンテナの/codeにマウントする
     # ローカルの/staticをコンテナの/staticにマウントする
     volumes:
-      - ./Django_App:/code
+      - ./app_dir:/code
       - ./static:/static
     # ローカルの8000番ポートとコンテナの8000番ポートをつなぐ
     ports:
@@ -62,14 +70,14 @@ services:
     image: phpmyadmin/phpmyadmin
     # コンテナ内の環境変数を.envを使って設定
     env_file:
-      - ./.env
+      - .env
     links:
       - db
     ports:
       - 4000:80
     volumes:
       - ./phpmyadmin/sessions:/sessions
-        
+
 volumes:
-  db_data:
+  mysql_data:
   static:
