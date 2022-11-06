@@ -1,6 +1,6 @@
 version: "3.9"
 
-# db(MySQL),app(Django),web(Nginx)のコンテナを作成
+# db(MySQL),app(Flask),web(Nginx)のコンテナを作成
 services:
   db:
     container_name: MySQL
@@ -21,19 +21,19 @@ services:
       start_period: 30s
 
   app:
-    container_name: Django
+    container_name: Flask
     build:
       context: .
-      dockerfile: Docker/Django/Dockerfile
+      dockerfile: Docker/Flask/Dockerfile
     volumes:
       - ./app_dir:/code
       - ./static:/static
     # 8000番ポートをNginx側が接続できるよう開く
     expose:
-      - "8000"
+      - "5000"
     # gunicornを起動させる
     command:  bash -c "python manage.py collectstatic --noinput && \
-              gunicorn djangopj.wsgi:application --bind 0.0.0.0:8000"
+              gunicorn flaskpj.wsgi:application --bind 0.0.0.0:8000"
     # コンテナ内の環境変数を.env.prodを使って設定
     env_file:
       - .env.prod

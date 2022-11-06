@@ -1,5 +1,5 @@
-# Docker_Django_Sample
-Docker + Django + Nginx + Gunicorn + MySQL
+# Docker_Flask_Sample
+Docker + Flask + Nginx + Gunicorn + MySQL
 ## 
 ## app_dirディレクトリ内にプロジェクトを生成
 # 
@@ -73,7 +73,7 @@ docker compose -f docker-compose.yml up -d
 ```
 
 * ブラウザで確認
-http://localhost:8000
+http://localhost:5000
 
 
 5. マイグレートして、スーパーユーザーを作成する
